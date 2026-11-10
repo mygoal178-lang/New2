@@ -1,0 +1,7 @@
+{
+  "name": "OrderFlow",
+  "description": "Premium E-commerce Order Management SaaS for social sellers, online shops, and multichannel retailers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
