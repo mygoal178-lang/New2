@@ -39,10 +39,10 @@ export default function App() {
     notifications,
     stockMovements,
     whiteLabel,
+    integrations,
     actions
   } = useOrderFlowStore();
 
-  // Start on landing so users see marketing + auth instead of a pre-loaded demo owner session
   const [viewMode, setViewMode] = useState<'landing' | 'app'>('landing');
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -200,11 +200,11 @@ export default function App() {
 
       {currentTab === 'integrations' && (
         <IntegrationsView
-          integrations={state.integrations || []}
+          integrations={integrations.length ? integrations : state.integrations || []}
           workspace={activeWorkspace}
           whiteLabel={whiteLabel}
           onToggleConnection={(id, isConnected) => actions.toggleIntegrationConnection(id, isConnected)}
-          onSyncOrders={(id) => actions.syncChannelOrders(id)}
+          onSyncOrders={(id) => actions.syncChannelOrders(id) || 0}
         />
       )}
 
