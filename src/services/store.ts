@@ -1,7 +1,5 @@
 /**
- * OrderFlow store (restored enough for UI + channel integrations).
- * Seeds default Shopify, WooCommerce, Amazon integration cards so the
- * Channel Integrations page is never empty.
+ * OrderFlow store — integrations + working order create/update/delete.
  */
 import { useState, useEffect } from 'react';
 import type { UserProfile, BusinessWorkspace, WhiteLabelConfig, AppNotification, ECommerceIntegration } from '../types';
@@ -70,55 +68,12 @@ const defaultWhiteLabel: WhiteLabelConfig = {
   enable_gdpr_tools: true
 };
 
-/** Always-available channel cards (shown on Integrations page) */
 const DEFAULT_INTEGRATIONS: ECommerceIntegration[] = [
-  {
-    id: 'integ_shopify',
-    business_id: 'biz_demo',
-    channel: 'shopify',
-    name: 'Shopify Storefront',
-    is_connected: false,
-    store_url: '',
-    orders_synced_count: 0,
-    auto_sync: false
-  },
-  {
-    id: 'integ_woo',
-    business_id: 'biz_demo',
-    channel: 'woocommerce',
-    name: 'WooCommerce Store',
-    is_connected: false,
-    store_url: '',
-    orders_synced_count: 0,
-    auto_sync: false
-  },
-  {
-    id: 'integ_amazon',
-    business_id: 'biz_demo',
-    channel: 'amazon',
-    name: 'Amazon Marketplace',
-    is_connected: false,
-    orders_synced_count: 0,
-    auto_sync: false
-  },
-  {
-    id: 'integ_ebay',
-    business_id: 'biz_demo',
-    channel: 'ebay',
-    name: 'eBay Store',
-    is_connected: false,
-    orders_synced_count: 0,
-    auto_sync: false
-  },
-  {
-    id: 'integ_etsy',
-    business_id: 'biz_demo',
-    channel: 'etsy',
-    name: 'Etsy Shop',
-    is_connected: false,
-    orders_synced_count: 0,
-    auto_sync: false
-  }
+  { id: 'integ_shopify', business_id: 'biz_demo', channel: 'shopify', name: 'Shopify Storefront', is_connected: false, store_url: '', orders_synced_count: 0, auto_sync: false },
+  { id: 'integ_woo', business_id: 'biz_demo', channel: 'woocommerce', name: 'WooCommerce Store', is_connected: false, store_url: '', orders_synced_count: 0, auto_sync: false },
+  { id: 'integ_amazon', business_id: 'biz_demo', channel: 'amazon', name: 'Amazon Marketplace', is_connected: false, orders_synced_count: 0, auto_sync: false },
+  { id: 'integ_ebay', business_id: 'biz_demo', channel: 'ebay', name: 'eBay Store', is_connected: false, orders_synced_count: 0, auto_sync: false },
+  { id: 'integ_etsy', business_id: 'biz_demo', channel: 'etsy', name: 'Etsy Shop', is_connected: false, orders_synced_count: 0, auto_sync: false }
 ];
 
 interface AppState {
@@ -158,28 +113,17 @@ const DEFAULT_STATE: AppState = {
 function ensureIntegrations(state: AppState): AppState {
   const bid = state.activeBusinessId || 'biz_demo';
   let integrations = state.integrations || [];
-
-  // If empty or missing core channels, seed defaults for active workspace
   if (!integrations.length) {
     integrations = DEFAULT_INTEGRATIONS.map((i) => ({ ...i, business_id: bid }));
   } else {
     const channels = new Set(integrations.map((i) => i.channel));
     for (const def of DEFAULT_INTEGRATIONS) {
       if (!channels.has(def.channel)) {
-        integrations = [
-          ...integrations,
-          { ...def, id: `${def.id}_${bid}`, business_id: bid }
-        ];
+        integrations = [...integrations, { ...def, id: `${def.id}_${bid}`, business_id: bid }];
       }
     }
   }
-
-  // Ensure every integration has a business_id matching a workspace when possible
-  integrations = integrations.map((i) => ({
-    ...i,
-    business_id: i.business_id || bid
-  }));
-
+  integrations = integrations.map((i) => ({ ...i, business_id: i.business_id || bid }));
   return { ...state, integrations };
 }
 
@@ -259,18 +203,12 @@ export const OrderFlowStore = {
   updateWorkspace(id: string, updates: any) {
     saveState({
       ...currentState,
-      workspaces: currentState.workspaces.map((w) =>
-        w.id === id ? { ...w, ...updates } : w
-      )
+      workspaces: currentState.workspaces.map((w) => (w.id === id ? { ...w, ...updates } : w))
     });
   },
 
   addProduct(p: any) {
-    const np = {
-      ...p,
-      id: `prod_${Date.now()}`,
-      business_id: currentState.activeBusinessId
-    };
+    const np = { ...p, id: `prod_${Date.now()}`, business_id: currentState.activeBusinessId };
     saveState({ ...currentState, products: [np, ...currentState.products] });
     return np;
   },
@@ -291,19 +229,160 @@ export const OrderFlowStore = {
 
   adjustStock() {},
 
-  createOrder() {
-    return { success: false, error: 'Use full store for order creation, or add products first.' };
+  createOrder(orderData: any) {
+    try {
+      if (!orderData || !orderData.customerName) {
+        return { success: false, error: 'Customer name is required.' };
+      }
+      const itemsIn = Array.isArray(orderData.items) ? orderData.items : [];
+      if (!itemsIn.length) {
+        return { success: false, error: 'At least one product item is required.' };
+      }
+
+      const bid = currentState.activeBusinessId;
+      const id = `ord_${Date.now()}`;
+      const orderNumber = `OF-${String(1000 + currentState.orders.length + 1)}`;
+      const ws = currentState.workspaces.find((w) => w.id === bid);
+      const currency = orderData.currencyCode || ws?.currency || 'USD';
+      const currencySymbol = orderData.currencySymbol || ws?.currency_symbol || '$';
+
+      let subtotal = 0;
+      const items = itemsIn.map((it: any, idx: number) => {
+        const qty = Number(it.quantity) || 1;
+        const unit = Number(it.unitPrice ?? it.unit_price ?? it.price) || 0;
+        const line = qty * unit;
+        subtotal += line;
+        return {
+          id: `oi_${Date.now()}_${idx}`,
+          order_id: id,
+          product_id: it.productId || it.product_id || '',
+          product_title: it.productTitle || it.product_title || it.title || 'Item',
+          variant_name: it.variantName || it.variant_name,
+          sku: it.sku || '',
+          quantity: qty,
+          unit_price: unit,
+          unit_cost: Number(it.unitCost ?? it.unit_cost) || 0,
+          total_price: line
+        };
+      });
+
+      const discount = Number(orderData.discount) || 0;
+      const delivery = Number(orderData.deliveryCharge ?? orderData.delivery_charge) || 0;
+      const tax = Number(orderData.taxAmount ?? orderData.tax_amount) || 0;
+      const total = Math.max(0, subtotal - discount + delivery + tax);
+      const totalCost = items.reduce((s: number, it: any) => s + it.unit_cost * it.quantity, 0);
+      const now = new Date().toISOString();
+
+      const order: any = {
+        id,
+        order_number: orderNumber,
+        business_id: bid,
+        customer_id: orderData.customerId,
+        customer_name: orderData.customerName,
+        customer_phone: orderData.customerPhone || '',
+        customer_email: orderData.customerEmail,
+        shipping_address: orderData.shippingAddress || orderData.address || { city: orderData.shippingCity || '' },
+        shipping_city: orderData.shippingCity,
+        shipping_country_code: orderData.shippingCountryCode,
+        address: orderData.address || orderData.shippingAddress,
+        status: 'pending',
+        payment_status: orderData.paymentStatus || 'unpaid',
+        payment_method: orderData.paymentMethod || 'cod',
+        currency,
+        currency_code: currency,
+        currency_symbol: currencySymbol,
+        subtotal,
+        discount,
+        delivery_charge: delivery,
+        tax_amount: tax,
+        total_amount: total,
+        total_cost: totalCost,
+        estimated_profit: total - totalCost,
+        items,
+        courier_name: orderData.courierProvider,
+        package_weight_kg: orderData.packageWeightKg,
+        internal_notes: orderData.internalNotes,
+        timeline: [
+          {
+            id: `tl_${Date.now()}`,
+            timestamp: now,
+            status: 'pending',
+            note: 'Order created',
+            actor_name: currentState.currentUser?.full_name || 'System'
+          }
+        ],
+        created_at: now,
+        updated_at: now
+      };
+
+      let customers = currentState.customers;
+      if (!orderData.customerId && orderData.customerName) {
+        const custId = `cust_${Date.now()}`;
+        customers = [
+          {
+            id: custId,
+            business_id: bid,
+            name: orderData.customerName,
+            phone: orderData.customerPhone || '',
+            email: orderData.customerEmail,
+            city: orderData.shippingCity || '',
+            category: 'new',
+            total_orders: 1,
+            total_spent: total,
+            created_at: now
+          },
+          ...customers
+        ];
+        order.customer_id = custId;
+      }
+
+      saveState({
+        ...currentState,
+        orders: [order, ...currentState.orders],
+        customers
+      });
+
+      return { success: true, order };
+    } catch (e: any) {
+      return { success: false, error: e?.message || 'Failed to create order' };
+    }
   },
 
-  updateOrderStatus() {},
-  deleteOrder() {},
+  updateOrderStatus(orderId: string, status: string, note?: string) {
+    const now = new Date().toISOString();
+    saveState({
+      ...currentState,
+      orders: currentState.orders.map((o: any) =>
+        o.id === orderId
+          ? {
+              ...o,
+              status,
+              updated_at: now,
+              timeline: [
+                ...(o.timeline || []),
+                {
+                  id: `tl_${Date.now()}`,
+                  timestamp: now,
+                  status,
+                  note: note || `Status → ${status}`,
+                  actor_name: currentState.currentUser?.full_name || 'System'
+                }
+              ]
+            }
+          : o
+      )
+    });
+  },
+
+  deleteOrder(orderId: string) {
+    saveState({
+      ...currentState,
+      orders: currentState.orders.filter((o: any) => o.id !== orderId)
+    });
+  },
 
   addCustomer(c: any) {
-    const nc = {
-      ...c,
-      id: `cust_${Date.now()}`,
-      business_id: currentState.activeBusinessId
-    };
+    const nc = { ...c, id: `cust_${Date.now()}`, business_id: currentState.activeBusinessId };
     saveState({ ...currentState, customers: [nc, ...currentState.customers] });
     return nc;
   },
@@ -322,17 +401,12 @@ export const OrderFlowStore = {
       ...currentState,
       integrations: currentState.integrations.map((i) =>
         i.id === id
-          ? {
-              ...i,
-              is_connected: isConnected,
-              last_sync_at: isConnected ? new Date().toISOString() : i.last_sync_at
-            }
+          ? { ...i, is_connected: isConnected, last_sync_at: isConnected ? new Date().toISOString() : i.last_sync_at }
           : i
       )
     });
   },
 
-  /** Bump sync counter; returns count added (for UI). */
   syncChannelOrders(id: string, importedCount = 1) {
     const n = typeof importedCount === 'number' ? importedCount : 1;
     saveState({
@@ -372,7 +446,6 @@ export function useOrderFlowStore() {
   const [state, setState] = useState(currentState);
 
   useEffect(() => {
-    // Re-ensure integrations on mount (fixes empty list from old localStorage)
     if (!currentState.integrations?.length) {
       saveState(ensureIntegrations(currentState));
     }
@@ -383,7 +456,6 @@ export function useOrderFlowStore() {
     state.workspaces.find((w) => w.id === state.activeBusinessId) || state.workspaces[0];
   const bid = state.activeBusinessId;
 
-  // Integrations: show for active workspace; if none match, show all seeded (avoid blank page)
   let integrations = state.integrations.filter((i: any) => i.business_id === bid);
   if (!integrations.length) {
     integrations = state.integrations.length
