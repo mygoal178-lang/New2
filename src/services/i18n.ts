@@ -1,6 +1,9 @@
 /**
  * ORDERFLOW - International Multilingual Translation & Localization Service
  * Supports 11 languages with full bidirectional RTL support for Arabic.
+ *
+ * Keys may be written with dots (nav.dashboard) or underscores (nav_dashboard).
+ * The t()/translate() helpers normalize dots to underscores before lookup.
  */
 
 import { useState, useEffect } from 'react';
@@ -29,22 +32,27 @@ export const SUPPORTED_LANGUAGES: LanguageMeta[] = [
   { code: 'bn', name: 'Bengali', nativeName: 'বাংলা', flag: '🇧🇩', direction: 'ltr' }
 ];
 
-// Complete dictionary of translations across core SaaS domains
 export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
   en: {
-    // Navigation
     nav_dashboard: 'Main Dashboard',
     nav_orders: 'Orders & Fulfillment',
     nav_inventory: 'Inventory & Catalog',
     nav_customers: 'Customer CRM',
     nav_shipping: 'Shipping & Logistics',
+    nav_couriers: 'Shipping & Couriers',
     nav_analytics: 'Financial P&L Analytics',
     nav_expenses: 'Expense Ledger',
     nav_integrations: 'Channel Integrations',
     nav_settings: 'Store & Global Settings',
     nav_handover: 'Commercial Handover',
-
-    // Actions
+    brand_return_home: 'Return to home',
+    orders_new_order: 'New Order',
+    workspace_create: 'Create Workspace',
+    workspace_switch: 'Switch workspace',
+    common_language: 'Language',
+    common_demo_mode: 'Demo Mode — data is stored only in this browser',
+    auth_demo_notice: 'Supabase is not configured. Login creates a local demo session only.',
+    auth_real_notice: 'Connected to Supabase Auth',
     btn_create_order: 'Create Order',
     btn_add_product: 'Add Product',
     btn_record_expense: 'Record Expense',
@@ -60,8 +68,6 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     btn_invoice: 'Invoice',
     btn_dispatch: 'Dispatch Parcel',
     btn_switch_workspace: 'Switch Workspace',
-
-    // Dashboard metrics
     metric_gross_sales: 'Gross Order Value',
     metric_collected_revenue: 'Collected Realized Revenue',
     metric_recorded_expenses: 'Recorded Operating Expenses',
@@ -69,8 +75,6 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     metric_outstanding_cod: 'In-Transit Cash on Delivery',
     metric_stock_alerts: 'Low Stock Alert',
     metric_total_orders: 'Total Orders Processed',
-
-    // Statuses
     status_pending: 'Pending',
     status_confirmed: 'Confirmed',
     status_processing: 'Processing',
@@ -79,14 +83,10 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     status_delivered: 'Delivered',
     status_cancelled: 'Cancelled',
     status_returned: 'Returned',
-
-    // Payment statuses
     pay_paid: 'Paid',
     pay_unpaid: 'Unpaid',
     pay_partially_paid: 'Partial',
     pay_refunded: 'Refunded',
-
-    // Invoicing
     inv_title: 'Commercial Tax Invoice',
     inv_billed_to: 'Billed & Shipped To',
     inv_date: 'Invoice Date',
@@ -98,8 +98,6 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     inv_total_due: 'Grand Total Due',
     inv_payment_method: 'Payment Method',
     inv_terms: 'Terms & Return Policy',
-
-    // Global
     lbl_country: 'Country',
     lbl_currency: 'Currency',
     lbl_timezone: 'Time Zone',
@@ -110,19 +108,23 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     lbl_state_region: 'State / Province / Region',
     lbl_tax_number: 'Tax ID / VAT Number'
   },
-
   es: {
     nav_dashboard: 'Panel Principal',
     nav_orders: 'Pedidos y Cumplimiento',
     nav_inventory: 'Inventario y Catálogo',
     nav_customers: 'CRM de Clientes',
     nav_shipping: 'Envíos y Logística',
+    nav_couriers: 'Envíos y Mensajería',
     nav_analytics: 'Finanzas y Pérdidas/Ganancias',
     nav_expenses: 'Libro de Gastos',
     nav_integrations: 'Integraciones de Tiendas',
     nav_settings: 'Configuración Global',
     nav_handover: 'Traspaso Comercial',
-
+    brand_return_home: 'Volver al inicio',
+    orders_new_order: 'Nuevo pedido',
+    workspace_create: 'Crear espacio de trabajo',
+    workspace_switch: 'Cambiar espacio',
+    common_language: 'Idioma',
     btn_create_order: 'Crear Pedido',
     btn_add_product: 'Añadir Producto',
     btn_record_expense: 'Registrar Gasto',
@@ -138,7 +140,6 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     btn_invoice: 'Factura',
     btn_dispatch: 'Despachar Paquete',
     btn_switch_workspace: 'Cambiar Tienda',
-
     metric_gross_sales: 'Valor Bruto de Pedidos',
     metric_collected_revenue: 'Ingresos Cobrados',
     metric_recorded_expenses: 'Gastos Operativos',
@@ -146,7 +147,6 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     metric_outstanding_cod: 'Cobro en Destino en Tránsito',
     metric_stock_alerts: 'Alerta de Stock Bajo',
     metric_total_orders: 'Total de Pedidos',
-
     status_pending: 'Pendiente',
     status_confirmed: 'Confirmado',
     status_processing: 'En Proceso',
@@ -155,12 +155,10 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     status_delivered: 'Entregado',
     status_cancelled: 'Cancelado',
     status_returned: 'Devuelto',
-
     pay_paid: 'Pagado',
     pay_unpaid: 'No Pagado',
     pay_partially_paid: 'Parcial',
     pay_refunded: 'Reembolsado',
-
     inv_title: 'Factura Fiscal Comercial',
     inv_billed_to: 'Facturado y Enviado a',
     inv_date: 'Fecha de Factura',
@@ -172,7 +170,6 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     inv_total_due: 'Total a Pagar',
     inv_payment_method: 'Método de Pago',
     inv_terms: 'Términos y Política de Devolución',
-
     lbl_country: 'País',
     lbl_currency: 'Moneda',
     lbl_timezone: 'Zona Horaria',
@@ -183,19 +180,23 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     lbl_state_region: 'Estado / Provincia',
     lbl_tax_number: 'NIF / CIF / IVA'
   },
-
   fr: {
     nav_dashboard: 'Tableau de Bord',
     nav_orders: 'Commandes et Livraisons',
     nav_inventory: 'Stock et Catalogue',
     nav_customers: 'CRM Clients',
     nav_shipping: 'Expédition et Transport',
+    nav_couriers: 'Transporteurs',
     nav_analytics: 'Résultats Financiers (P&L)',
     nav_expenses: 'Grand Livre des Dépenses',
     nav_integrations: 'Canaux E-Commerce',
     nav_settings: 'Paramètres Généraux',
     nav_handover: 'Transmission Commerciale',
-
+    brand_return_home: 'Retour à l’accueil',
+    orders_new_order: 'Nouvelle commande',
+    workspace_create: 'Créer un espace',
+    workspace_switch: 'Changer d’espace',
+    common_language: 'Langue',
     btn_create_order: 'Créer Commande',
     btn_add_product: 'Ajouter Produit',
     btn_record_expense: 'Enregistrer Dépense',
@@ -211,7 +212,6 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     btn_invoice: 'Facture',
     btn_dispatch: 'Expédier Colis',
     btn_switch_workspace: 'Changer de Boutique',
-
     metric_gross_sales: 'Chiffre d’Affaires Brut',
     metric_collected_revenue: 'Revenus Encaissés',
     metric_recorded_expenses: 'Dépenses Opérationnelles',
@@ -219,7 +219,6 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     metric_outstanding_cod: 'Paiements à la Livraison en Cours',
     metric_stock_alerts: 'Alerte Stock Faible',
     metric_total_orders: 'Total Commandes',
-
     status_pending: 'En attente',
     status_confirmed: 'Confirmée',
     status_processing: 'En préparation',
@@ -228,12 +227,10 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     status_delivered: 'Livrée',
     status_cancelled: 'Annulée',
     status_returned: 'Retournée',
-
     pay_paid: 'Payé',
     pay_unpaid: 'Impayé',
     pay_partially_paid: 'Partiel',
     pay_refunded: 'Remboursé',
-
     inv_title: 'Facture Commerciale',
     inv_billed_to: 'Facturé et Livré à',
     inv_date: 'Date de Facture',
@@ -245,7 +242,6 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     inv_total_due: 'Total Net à Payer',
     inv_payment_method: 'Mode de Paiement',
     inv_terms: 'Conditions Générales et Retours',
-
     lbl_country: 'Pays',
     lbl_currency: 'Devise',
     lbl_timezone: 'Fuseau Horaire',
@@ -256,19 +252,23 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     lbl_state_region: 'Région / Département',
     lbl_tax_number: 'N° TVA Intracommunautaire'
   },
-
   de: {
     nav_dashboard: 'Übersicht & Dashboard',
     nav_orders: 'Bestellungen & Versand',
     nav_inventory: 'Warenbestand & Katalog',
     nav_customers: 'Kundenverwaltung (CRM)',
     nav_shipping: 'Logistik & Paketversand',
+    nav_couriers: 'Versanddienstleister',
     nav_analytics: 'Finanzen & GuV-Bericht',
     nav_expenses: 'Betriebsausgaben',
     nav_integrations: 'Shop-Schnittstellen',
     nav_settings: 'Globale Einstellungen',
     nav_handover: 'Asset-Übergabe',
-
+    brand_return_home: 'Zur Startseite',
+    orders_new_order: 'Neue Bestellung',
+    workspace_create: 'Arbeitsbereich erstellen',
+    workspace_switch: 'Arbeitsbereich wechseln',
+    common_language: 'Sprache',
     btn_create_order: 'Bestellung anlegen',
     btn_add_product: 'Produkt hinzufügen',
     btn_record_expense: 'Ausgabe buchen',
@@ -284,7 +284,6 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     btn_invoice: 'Rechnung',
     btn_dispatch: 'Paket versenden',
     btn_switch_workspace: 'Mandant wechseln',
-
     metric_gross_sales: 'Bruttobestellwert',
     metric_collected_revenue: 'Realisierter Umsatz',
     metric_recorded_expenses: 'Betriebsausgaben',
@@ -292,7 +291,6 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     metric_outstanding_cod: 'Offene Nachnahmezahlungen',
     metric_stock_alerts: 'Geringer Lagerbestand',
     metric_total_orders: 'Gesamte Aufträge',
-
     status_pending: 'Ausstehend',
     status_confirmed: 'Bestätigt',
     status_processing: 'In Bearbeitung',
@@ -301,12 +299,10 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     status_delivered: 'Zugestellt',
     status_cancelled: 'Storniert',
     status_returned: 'Retoure',
-
     pay_paid: 'Bezahlt',
     pay_unpaid: 'Offen',
     pay_partially_paid: 'Teilweise',
     pay_refunded: 'Erstattet',
-
     inv_title: 'Handelsrechnung',
     inv_billed_to: 'Rechnungs- und Lieferadresse',
     inv_date: 'Rechnungsdatum',
@@ -318,7 +314,6 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     inv_total_due: 'Gesamtbetrag',
     inv_payment_method: 'Zahlungsart',
     inv_terms: 'Widerrufsbelehrung & AGB',
-
     lbl_country: 'Land',
     lbl_currency: 'Währung',
     lbl_timezone: 'Zeitzone',
@@ -329,19 +324,23 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     lbl_state_region: 'Bundesland / Region',
     lbl_tax_number: 'USt-IdNr.'
   },
-
   pt: {
     nav_dashboard: 'Painel Geral',
     nav_orders: 'Pedidos e Entregas',
     nav_inventory: 'Estoque e Catálogo',
     nav_customers: 'CRM de Clientes',
     nav_shipping: 'Frete e Envio',
+    nav_couriers: 'Transportadoras',
     nav_analytics: 'Relatórios Financeiros',
     nav_expenses: 'Livro de Despesas',
     nav_integrations: 'Canais de Venda',
     nav_settings: 'Configurações Globais',
     nav_handover: 'Transferência Comercial',
-
+    brand_return_home: 'Voltar ao início',
+    orders_new_order: 'Novo pedido',
+    workspace_create: 'Criar espaço de trabalho',
+    workspace_switch: 'Trocar espaço',
+    common_language: 'Idioma',
     btn_create_order: 'Criar Pedido',
     btn_add_product: 'Adicionar Produto',
     btn_record_expense: 'Lançar Despesa',
@@ -357,7 +356,6 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     btn_invoice: 'Fatura',
     btn_dispatch: 'Despachar Pacote',
     btn_switch_workspace: 'Trocar Loja',
-
     metric_gross_sales: 'Valor Bruto de Vendas',
     metric_collected_revenue: 'Receita Realizada',
     metric_recorded_expenses: 'Despesas Operacionais',
@@ -365,7 +363,6 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     metric_outstanding_cod: 'Cobrança na Entrega em Trânsito',
     metric_stock_alerts: 'Alerta de Estoque Baixo',
     metric_total_orders: 'Total de Pedidos',
-
     status_pending: 'Pendente',
     status_confirmed: 'Confirmado',
     status_processing: 'Em Preparação',
@@ -374,12 +371,10 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     status_delivered: 'Entregue',
     status_cancelled: 'Cancelado',
     status_returned: 'Devolvido',
-
     pay_paid: 'Pago',
     pay_unpaid: 'Não Pago',
     pay_partially_paid: 'Parcial',
     pay_refunded: 'Reembolsado',
-
     inv_title: 'Nota Fiscal / Fatura Comercial',
     inv_billed_to: 'Faturado e Enviado Para',
     inv_date: 'Data de Emissão',
@@ -391,7 +386,6 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     inv_total_due: 'Valor Total Devido',
     inv_payment_method: 'Forma de Pagamento',
     inv_terms: 'Políticas de Devolução e Garantia',
-
     lbl_country: 'País',
     lbl_currency: 'Moeda',
     lbl_timezone: 'Fuso Horário',
@@ -402,19 +396,23 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     lbl_state_region: 'Estado / Região',
     lbl_tax_number: 'CNPJ / CPF / NIF'
   },
-
   ar: {
     nav_dashboard: 'لوحة التحكم الرئيسية',
     nav_orders: 'إدارة الطلبات والشحن',
     nav_inventory: 'المخزون والمنتجات',
     nav_customers: 'إدارة العملاء',
     nav_shipping: 'شركات الشحن والتوصيل',
+    nav_couriers: 'شركات الشحن',
     nav_analytics: 'الأرباح والتقارير المالية',
     nav_expenses: 'سجل المصروفات',
     nav_integrations: 'ربط المتاجر الإلكترونية',
     nav_settings: 'إعدادات المتجر العامة',
     nav_handover: 'تسليم النظام التجاري',
-
+    brand_return_home: 'العودة للرئيسية',
+    orders_new_order: 'طلب جديد',
+    workspace_create: 'إنشاء مساحة عمل',
+    workspace_switch: 'تبديل مساحة العمل',
+    common_language: 'اللغة',
     btn_create_order: 'إنشاء طلب جديد',
     btn_add_product: 'إضافة منتج',
     btn_record_expense: 'تسجيل مصروف',
@@ -430,7 +428,6 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     btn_invoice: 'فاتورة ضريبية',
     btn_dispatch: 'إرسال الشحنة',
     btn_switch_workspace: 'تبديل مساحة العمل',
-
     metric_gross_sales: 'إجمالي قيمة المبيعات',
     metric_collected_revenue: 'الإيرادات المحصلة الفعلية',
     metric_recorded_expenses: 'إجمالي المصروفات',
@@ -438,7 +435,6 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     metric_outstanding_cod: 'مبالغ الدفع عند الاستلام المعلقة',
     metric_stock_alerts: 'تنبيه انخفاض المخزون',
     metric_total_orders: 'إجمالي الطلبات المنجزة',
-
     status_pending: 'قيد الانتظار',
     status_confirmed: 'تم التأكيد',
     status_processing: 'قيد التجهيز',
@@ -447,12 +443,10 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     status_delivered: 'تم التوصيل',
     status_cancelled: 'ملغي',
     status_returned: 'مرتجع',
-
     pay_paid: 'مدفوع',
     pay_unpaid: 'غير مدفوع',
     pay_partially_paid: 'دفع جزئي',
     pay_refunded: 'مسترجع',
-
     inv_title: 'فاتورة ضريبية تجارية',
     inv_billed_to: 'فاتورة وشحن إلى',
     inv_date: 'تاريخ الفاتورة',
@@ -464,7 +458,6 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     inv_total_due: 'المبلغ الإجمالي المستحق',
     inv_payment_method: 'طريقة الدفع',
     inv_terms: 'شروط الإرجاع والضمان',
-
     lbl_country: 'الدولة',
     lbl_currency: 'العملة',
     lbl_timezone: 'المنطقة الزمنية',
@@ -475,19 +468,23 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     lbl_state_region: 'المنطقة / المحافظة',
     lbl_tax_number: 'الرقم الضريبي'
   },
-
   ja: {
     nav_dashboard: 'ダッシュボード',
     nav_orders: '注文管理と出荷',
     nav_inventory: '在庫と商品カタログ',
     nav_customers: '顧客管理 (CRM)',
     nav_shipping: '配送・運送管理',
+    nav_couriers: '配送業者',
     nav_analytics: '売上と損益計算 (P&L)',
     nav_expenses: '経費管理台帳',
     nav_integrations: 'ECモール連携',
     nav_settings: 'ストア設定',
     nav_handover: '譲渡・資産パッケージ',
-
+    brand_return_home: 'ホームに戻る',
+    orders_new_order: '新規注文',
+    workspace_create: 'ワークスペース作成',
+    workspace_switch: 'ワークスペース切替',
+    common_language: '言語',
     btn_create_order: '新規注文を作成',
     btn_add_product: '商品を追加',
     btn_record_expense: '経費を登録',
@@ -503,7 +500,6 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     btn_invoice: '請求書 / 納品書',
     btn_dispatch: '荷物を出荷',
     btn_switch_workspace: '店舗を切り替え',
-
     metric_gross_sales: '総注文金額',
     metric_collected_revenue: '回収済み売上',
     metric_recorded_expenses: '営業経費合計',
@@ -511,7 +507,6 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     metric_outstanding_cod: '代金引換配送中残高',
     metric_stock_alerts: '在庫低下アラート',
     metric_total_orders: '処理済み総注文件数',
-
     status_pending: '保留中',
     status_confirmed: '確認済み',
     status_processing: '梱包準備中',
@@ -520,125 +515,125 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     status_delivered: '配達完了',
     status_cancelled: 'キャンセル',
     status_returned: '返品',
-
-    pay_paid: '支払済み',
+    pay_paid: '支払済',
     pay_unpaid: '未払い',
-    pay_partially_paid: '一部支払い',
-    pay_refunded: '返金済み',
-
-    inv_title: '商業インボイス / 納品書',
-    inv_billed_to: '請求先・納品先',
+    pay_partially_paid: '一部支払',
+    pay_refunded: '返金済',
+    inv_title: '請求書',
+    inv_billed_to: '請求・配送先',
     inv_date: '発行日',
-    inv_no: '伝票番号',
+    inv_no: '請求書番号',
     inv_subtotal: '小計',
     inv_discount: '割引',
-    inv_shipping_fee: '配送料',
+    inv_shipping_fee: '送料',
     inv_tax_vat: '消費税',
-    inv_total_due: '合計請求金額',
-    inv_payment_method: '決済方法',
-    inv_terms: '返品規定および特記事項',
-
-    lbl_country: '国・地域',
+    inv_total_due: '合計金額',
+    inv_payment_method: '支払方法',
+    inv_terms: '返品・保証条件',
+    lbl_country: '国',
     lbl_currency: '通貨',
     lbl_timezone: 'タイムゾーン',
     lbl_language: '言語',
-    lbl_address: '住所・番地',
+    lbl_address: '住所',
     lbl_city: '市区町村',
     lbl_postal_code: '郵便番号',
     lbl_state_region: '都道府県',
-    lbl_tax_number: '適格請求書発行事業者番号'
+    lbl_tax_number: '税番号'
   },
-
   ko: {
-    nav_dashboard: '메인 대시보드',
-    nav_orders: '주문 및 배송 관리',
-    nav_inventory: '재고 및 상품 카탈로그',
-    nav_customers: '고객 관계 관리 (CRM)',
-    nav_shipping: '택배 및 물류',
-    nav_analytics: '매출 및 손익분석 (P&L)',
-    nav_expenses: '비용 지출 내역',
-    nav_integrations: '쇼핑몰 채널 연동',
-    nav_settings: '스토어 환경설정',
-    nav_handover: '인수·자산 핸드오버',
-
+    nav_dashboard: '대시보드',
+    nav_orders: '주문 및 배송',
+    nav_inventory: '재고 및 카탈로그',
+    nav_customers: '고객 CRM',
+    nav_shipping: '배송 및 물류',
+    nav_couriers: '택배사',
+    nav_analytics: '재무 손익 분석',
+    nav_expenses: '비용 원장',
+    nav_integrations: '채널 연동',
+    nav_settings: '스토어 설정',
+    nav_handover: '상업적 인수인계',
+    brand_return_home: '홈으로 돌아가기',
+    orders_new_order: '새 주문',
+    workspace_create: '워크스페이스 만들기',
+    workspace_switch: '워크스페이스 전환',
+    common_language: '언어',
     btn_create_order: '주문 생성',
-    btn_add_product: '상품 등록',
-    btn_record_expense: '지출 기록',
-    btn_export_csv: 'CSV 다운로드',
+    btn_add_product: '상품 추가',
+    btn_record_expense: '비용 기록',
+    btn_export_csv: 'CSV 내보내기',
     btn_print_report: '보고서 인쇄',
     btn_save: '저장',
     btn_cancel: '취소',
-    btn_edit: '수정',
+    btn_edit: '편집',
     btn_delete: '삭제',
     btn_search: '검색...',
     btn_filter: '필터',
-    btn_details: '상세보기',
-    btn_invoice: '세금계산서/인보이스',
-    btn_dispatch: '배송 접수',
-    btn_switch_workspace: '스토어 변경',
-
-    metric_gross_sales: '총 주문금액',
-    metric_collected_revenue: '정산 수금 매출',
-    metric_recorded_expenses: '운영 지출액',
-    metric_net_profit: '추정 순이익',
-    metric_outstanding_cod: '배송중 착불 잔액',
-    metric_stock_alerts: '재고 부족 경고',
+    btn_details: '상세',
+    btn_invoice: '송장',
+    btn_dispatch: '발송',
+    btn_switch_workspace: '스토어 전환',
+    metric_gross_sales: '총 주문 금액',
+    metric_collected_revenue: '수금 매출',
+    metric_recorded_expenses: '운영 비용',
+    metric_net_profit: '예상 순이익',
+    metric_outstanding_cod: '배송 중 COD',
+    metric_stock_alerts: '재고 부족 알림',
     metric_total_orders: '총 처리 주문',
-
-    status_pending: '대기중',
-    status_confirmed: '주문확인',
-    status_processing: '상품준비중',
-    status_ready_to_ship: '배송준비완료',
-    status_shipped: '배송출고',
-    status_delivered: '배송완료',
-    status_cancelled: '주문취소',
-    status_returned: '반품완료',
-
-    pay_paid: '결제완료',
+    status_pending: '대기',
+    status_confirmed: '확인됨',
+    status_processing: '처리 중',
+    status_ready_to_ship: '출고 준비',
+    status_shipped: '배송 중',
+    status_delivered: '배송 완료',
+    status_cancelled: '취소',
+    status_returned: '반품',
+    pay_paid: '결제 완료',
     pay_unpaid: '미결제',
-    pay_partially_paid: '부분결제',
-    pay_refunded: '환불완료',
-
-    inv_title: '세금 인보이스 / 거래명세서',
-    inv_billed_to: '수령인 및 배송지',
-    inv_date: '발행일자',
-    inv_no: '주문/송장번호',
-    inv_subtotal: '공급가액',
-    inv_discount: '할인금액',
+    pay_partially_paid: '부분 결제',
+    pay_refunded: '환불',
+    inv_title: '세금계산서',
+    inv_billed_to: '청구 및 배송지',
+    inv_date: '발행일',
+    inv_no: '송장 번호',
+    inv_subtotal: '소계',
+    inv_discount: '할인',
     inv_shipping_fee: '배송비',
-    inv_tax_vat: '부가가치세 (VAT)',
-    inv_total_due: '최종 청구금액',
-    inv_payment_method: '결제수단',
-    inv_terms: '교환 및 반품 규정',
-
+    inv_tax_vat: '부가세',
+    inv_total_due: '합계',
+    inv_payment_method: '결제 수단',
+    inv_terms: '반품 및 보증 정책',
     lbl_country: '국가',
     lbl_currency: '통화',
-    lbl_timezone: '표준시',
+    lbl_timezone: '시간대',
     lbl_language: '언어',
-    lbl_address: '도로명 주소',
-    lbl_city: '시/군/구',
+    lbl_address: '주소',
+    lbl_city: '도시',
     lbl_postal_code: '우편번호',
     lbl_state_region: '시/도',
     lbl_tax_number: '사업자등록번호'
   },
-
   zh: {
-    nav_dashboard: '控制台大盘',
-    nav_orders: '订单与发货履约',
-    nav_inventory: '商品库存与目录',
-    nav_customers: '客户关系 (CRM)',
-    nav_shipping: '物流与快递运力',
-    nav_analytics: '损益与财务报表 (P&L)',
-    nav_expenses: '经营支出记账',
-    nav_integrations: '多渠道电商集成',
-    nav_settings: '全局业务设置',
-    nav_handover: '商业转让与交付',
-
-    btn_create_order: '创建新订单',
-    btn_add_product: '添加商品',
-    btn_record_expense: '记一笔支出',
+    nav_dashboard: '主控制台',
+    nav_orders: '订单与履约',
+    nav_inventory: '库存与目录',
+    nav_customers: '客户 CRM',
+    nav_shipping: '物流配送',
+    nav_couriers: '快递公司',
+    nav_analytics: '财务损益分析',
+    nav_expenses: '费用台账',
+    nav_integrations: '渠道集成',
+    nav_settings: '店铺全局设置',
+    nav_handover: '商业交接',
+    brand_return_home: '返回首页',
+    orders_new_order: '新建订单',
+    workspace_create: '创建工作区',
+    workspace_switch: '切换工作区',
+    common_language: '语言',
+    btn_create_order: '创建订单',
+    btn_add_product: '添加产品',
+    btn_record_expense: '记录费用',
     btn_export_csv: '导出 CSV',
-    btn_print_report: '打印财务单据',
+    btn_print_report: '打印报表',
     btn_save: '保存更改',
     btn_cancel: '取消',
     btn_edit: '编辑',
@@ -646,75 +641,74 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     btn_search: '搜索...',
     btn_filter: '筛选',
     btn_details: '详情',
-    btn_invoice: '商业发票',
-    btn_dispatch: '派发快递包裹',
-    btn_switch_workspace: '切换店铺空间',
-
-    metric_gross_sales: '总订单流水',
-    metric_collected_revenue: '已结算实收收入',
-    metric_recorded_expenses: '经营支出总计',
+    btn_invoice: '发票',
+    btn_dispatch: '发货',
+    btn_switch_workspace: '切换店铺',
+    metric_gross_sales: '订单总额',
+    metric_collected_revenue: '已收款收入',
+    metric_recorded_expenses: '已记录费用',
     metric_net_profit: '预估净利润',
-    metric_outstanding_cod: '在途货到付款款项',
-    metric_stock_alerts: '低库存预警',
+    metric_outstanding_cod: '在途货到付款',
+    metric_stock_alerts: '低库存提醒',
     metric_total_orders: '已处理订单总数',
-
     status_pending: '待处理',
     status_confirmed: '已确认',
-    status_processing: '拣货配货中',
-    status_ready_to_ship: '待揽收',
+    status_processing: '处理中',
+    status_ready_to_ship: '待发货',
     status_shipped: '已发货',
     status_delivered: '已送达',
     status_cancelled: '已取消',
-    status_returned: '已退货',
-
-    pay_paid: '已支付',
+    status_returned: '已退回',
+    pay_paid: '已付款',
     pay_unpaid: '未付款',
-    pay_partially_paid: '部分支付',
+    pay_partially_paid: '部分付款',
     pay_refunded: '已退款',
-
-    inv_title: '商业发票 / 出货清单',
-    inv_billed_to: '收件人与送货地址',
-    inv_date: '开票日期',
+    inv_title: '商业税务发票',
+    inv_billed_to: '账单与收货地址',
+    inv_date: '发票日期',
     inv_no: '发票编号',
-    inv_subtotal: '商品小计',
-    inv_discount: '优惠折扣',
+    inv_subtotal: '小计',
+    inv_discount: '折扣',
     inv_shipping_fee: '运费',
-    inv_tax_vat: '增值税 / 消费税',
-    inv_total_due: '应付总金额',
+    inv_tax_vat: '税费 / 增值税',
+    inv_total_due: '应付总额',
     inv_payment_method: '付款方式',
-    inv_terms: '退换货条例及保障声明',
-
-    lbl_country: '国家/地区',
-    lbl_currency: '结算币种',
+    inv_terms: '退换货条款',
+    lbl_country: '国家',
+    lbl_currency: '货币',
     lbl_timezone: '时区',
-    lbl_language: '系统语言',
-    lbl_address: '详细街道地址',
+    lbl_language: '语言',
+    lbl_address: '地址',
     lbl_city: '城市',
-    lbl_postal_code: '邮政编码',
-    lbl_state_region: '省份 / 地区',
-    lbl_tax_number: '纳税人识别号 / 税号'
+    lbl_postal_code: '邮编',
+    lbl_state_region: '省/州',
+    lbl_tax_number: '税号'
   },
-
   hi: {
     nav_dashboard: 'मुख्य डैशबोर्ड',
-    nav_orders: 'ऑर्डर और डिलीवरी प्रबंधन',
-    nav_inventory: 'इन्वेंट्री और कैटलॉग',
-    nav_customers: 'ग्राहक संबंध (CRM)',
-    nav_shipping: 'कूरियर और लॉजिस्टिक्स',
-    nav_analytics: 'बिक्री और लाभ (P&L)',
-    nav_expenses: 'खर्च का खाता',
-    nav_integrations: 'ई-कॉमर्स चैनल एकीकरण',
-    nav_settings: 'स्टोर और वैश्विक सेटिंग्स',
-    nav_handover: 'व्यावसायिक हस्तांतरण',
-
-    btn_create_order: 'नया ऑर्डर बनाएं',
+    nav_orders: 'ऑर्डर और पूर्ति',
+    nav_inventory: 'इन्वेंटरी और कैटलॉग',
+    nav_customers: 'ग्राहक CRM',
+    nav_shipping: 'शिपिंग और लॉजिस्टिक्स',
+    nav_couriers: 'कूरियर',
+    nav_analytics: 'वित्तीय P&L विश्लेषण',
+    nav_expenses: 'खर्च बही',
+    nav_integrations: 'चैनल एकीकरण',
+    nav_settings: 'स्टोर सेटिंग्स',
+    nav_handover: 'व्यावसायिक हैंडओवर',
+    brand_return_home: 'होम पर वापस',
+    orders_new_order: 'नया ऑर्डर',
+    workspace_create: 'वर्कस्पेस बनाएं',
+    workspace_switch: 'वर्कस्पेस बदलें',
+    common_language: 'भाषा',
+    btn_create_order: 'ऑर्डर बनाएं',
     btn_add_product: 'उत्पाद जोड़ें',
     btn_record_expense: 'खर्च दर्ज करें',
-    btn_export_csv: 'CSV डाउनलोड करें',
-    btn_print_report: 'रिपोर्ट प्रिंट करें',
-    btn_save: 'सुरक्षित करें',
-    btn_cancel: 'रद्द करें',
-    btn_edit: 'संपादित करें',
+    btn_export_csv: 'CSV निर्यात',
+    btn_print_report: 'रिपोर्ट प्रिंट',
+    btn_save: 'सहेजें',
+    btn_cancel: 'रद्द',
+    btn_edit: 'संपादित',
     btn_delete: 'हटाएं',
     btn_search: 'खोजें...',
     btn_filter: 'फ़िल्टर',
@@ -722,41 +716,36 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     btn_invoice: 'इनवॉइस',
     btn_dispatch: 'पार्सल भेजें',
     btn_switch_workspace: 'स्टोर बदलें',
-
-    metric_gross_sales: 'कुल सकल बिक्री',
-    metric_collected_revenue: 'प्राप्त वास्तविक राजस्व',
-    metric_recorded_expenses: 'दर्ज परिचालन खर्च',
+    metric_gross_sales: 'सकल ऑर्डर मूल्य',
+    metric_collected_revenue: 'एकत्र राजस्व',
+    metric_recorded_expenses: 'दर्ज खर्च',
     metric_net_profit: 'अनुमानित शुद्ध लाभ',
-    metric_outstanding_cod: 'रास्ते में लंबित COD राशि',
-    metric_stock_alerts: 'कम स्टॉक चेतावनी',
-    metric_total_orders: 'कुल संसाधित ऑर्डर',
-
+    metric_outstanding_cod: 'ट्रांजिट में COD',
+    metric_stock_alerts: 'कम स्टॉक अलर्ट',
+    metric_total_orders: 'कुल प्रोसेस्ड ऑर्डर',
     status_pending: 'लंबित',
-    status_confirmed: 'पुष्ट',
-    status_processing: 'प्रक्रिया में',
-    status_ready_to_ship: 'भेजने के लिए तैयार',
-    status_shipped: 'भेज दिया गया',
-    status_delivered: 'वितरित',
+    status_confirmed: 'पुष्टि',
+    status_processing: 'प्रोसेसिंग',
+    status_ready_to_ship: 'शिप के लिए तैयार',
+    status_shipped: 'भेज दिया',
+    status_delivered: 'डिलीवर',
     status_cancelled: 'रद्द',
-    status_returned: 'वापस किया गया',
-
-    pay_paid: 'भुगतान किया गया',
-    pay_unpaid: 'अदत्त',
+    status_returned: 'वापस',
+    pay_paid: 'भुगतान',
+    pay_unpaid: 'अवैतनिक',
     pay_partially_paid: 'आंशिक',
-    pay_refunded: 'वापस किया गया',
-
-    inv_title: 'टैक्स इनवॉइस',
-    inv_billed_to: 'बिल और शिपिंग पता',
+    pay_refunded: 'रिफंड',
+    inv_title: 'वाणिज्यिक टैक्स इनवॉइस',
+    inv_billed_to: 'बिल और शिप',
     inv_date: 'इनवॉइस तिथि',
-    inv_no: 'इनवॉइस संख्या',
+    inv_no: 'इनवॉइस नंबर',
     inv_subtotal: 'उप-योग',
     inv_discount: 'छूट',
-    inv_shipping_fee: 'वितरण शुल्क',
-    inv_tax_vat: 'जीएसटी / टैक्स',
-    inv_total_due: 'कुल देय राशि',
+    inv_shipping_fee: 'शिपिंग शुल्क',
+    inv_tax_vat: 'टैक्स / VAT',
+    inv_total_due: 'कुल देय',
     inv_payment_method: 'भुगतान विधि',
-    inv_terms: 'शर्तें और वापसी नीति',
-
+    inv_terms: 'वापसी नीति',
     lbl_country: 'देश',
     lbl_currency: 'मुद्रा',
     lbl_timezone: 'समय क्षेत्र',
@@ -764,46 +753,48 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     lbl_address: 'पता',
     lbl_city: 'शहर',
     lbl_postal_code: 'पिन कोड',
-    lbl_state_region: 'राज्य / प्रांत',
-    lbl_tax_number: 'GSTIN / टैक्स नंबर'
+    lbl_state_region: 'राज्य / क्षेत्र',
+    lbl_tax_number: 'टैक्स नंबर'
   },
-
   bn: {
-    nav_dashboard: 'প্রধান ড্যাশবোর্ড',
-    nav_orders: 'অর্ডার ও ডেলিভারি ব্যবস্থাপনা',
-    nav_inventory: 'ইনভেন্টরি ও প্রোডাক্ট ক্যাটালগ',
-    nav_customers: 'কাস্টমার সিআরএম (CRM)',
-    nav_shipping: 'কুরিয়ার ও লজিস্টিকস',
-    nav_analytics: 'আয়-ব্যয় ও প্রফিট রিপোর্ট (P&L)',
-    nav_expenses: 'অপারেটিং খরচের খাতা',
-    nav_integrations: 'অনলাইন শপ ইন্টিগ্রেশন',
-    nav_settings: 'স্টোর ও রিব্র্যান্ডিং সেটিংস',
-    nav_handover: 'বাণিজ্যিক হ্যান্ডওভার',
-
-    btn_create_order: 'নতুন অর্ডার তৈরি করুন',
-    btn_add_product: 'পণ্য যোগ করুন',
-    btn_record_expense: 'খরচ এন্ট্রি করুন',
+    nav_dashboard: 'মূল ড্যাশবোর্ড',
+    nav_orders: 'অর্ডার ও ডেলিভারি',
+    nav_inventory: 'ইনভেন্টরি ও ক্যাটালগ',
+    nav_customers: 'কাস্টমার CRM',
+    nav_shipping: 'শিপিং ও লজিস্টিকস',
+    nav_couriers: 'কুরিয়ার',
+    nav_analytics: 'আর্থিক P&L বিশ্লেষণ',
+    nav_expenses: 'খরচের খাতা',
+    nav_integrations: 'চ্যানেল ইন্টিগ্রেশন',
+    nav_settings: 'স্টোর সেটিংস',
+    nav_handover: 'বাণিজ্যিক হস্তান্তর',
+    brand_return_home: 'হোমে ফিরুন',
+    orders_new_order: 'নতুন অর্ডার',
+    workspace_create: 'ওয়ার্কস্পেস তৈরি',
+    workspace_switch: 'ওয়ার্কস্পেস পরিবর্তন',
+    common_language: 'ভাষা',
+    btn_create_order: 'অর্ডার তৈরি',
+    btn_add_product: 'পণ্য যোগ',
+    btn_record_expense: 'খরচ রেকর্ড',
     btn_export_csv: 'CSV এক্সপোর্ট',
-    btn_print_report: 'স্টেটমেন্ট প্রিন্ট',
-    btn_save: 'সংরক্ষণ করুন',
+    btn_print_report: 'রিপোর্ট প্রিন্ট',
+    btn_save: 'সংরক্ষণ',
     btn_cancel: 'বাতিল',
     btn_edit: 'সম্পাদনা',
-    btn_delete: 'মুছে ফেলুন',
-    btn_search: 'অনুসন্ধান করুন...',
+    btn_delete: 'মুছুন',
+    btn_search: 'খুঁজুন...',
     btn_filter: 'ফিল্টার',
     btn_details: 'বিস্তারিত',
-    btn_invoice: 'চালান / ইনভয়েস',
-    btn_dispatch: 'কুরিয়ারে পাঠান',
-    btn_switch_workspace: 'ওয়ার্কস্পেস পরিবর্তন',
-
-    metric_gross_sales: 'মোট বুকড বিক্রয়মূল্য',
-    metric_collected_revenue: 'সংগৃহীত প্রকৃত নগদ টাকা',
+    btn_invoice: 'ইনভয়েস',
+    btn_dispatch: 'পার্সেল পাঠান',
+    btn_switch_workspace: 'স্টোর পরিবর্তন',
+    metric_gross_sales: 'মোট অর্ডার মূল্য',
+    metric_collected_revenue: 'সংগৃহীত আয়',
     metric_recorded_expenses: 'মোট পরিচালন ব্যয়',
     metric_net_profit: 'প্রকৃত নিট মুনাফা',
     metric_outstanding_cod: 'কুরিয়ারে জমা থাকা COD টাকা',
     metric_stock_alerts: 'স্বল্প স্টক সতর্কতা',
     metric_total_orders: 'মোট প্রসেস করা অর্ডার',
-
     status_pending: 'অপেক্ষমাণ (Pending)',
     status_confirmed: 'নিশ্চিত (Confirmed)',
     status_processing: 'প্রস্তুত হচ্ছে (Processing)',
@@ -812,12 +803,10 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     status_delivered: 'সফলভাবে ডেলিভার্ড',
     status_cancelled: 'বাতিল (Cancelled)',
     status_returned: 'ফেরত এসেছে (Returned)',
-
     pay_paid: 'পরিশোধিত',
     pay_unpaid: 'অপরিশোধিত',
     pay_partially_paid: 'আংশিক',
     pay_refunded: 'রিফান্ড করা হয়েছে',
-
     inv_title: 'ট্যাক্স চালান ও বিলপত্র',
     inv_billed_to: 'বিল ও ডেলিভারি প্রাপক',
     inv_date: 'চালানের তারিখ',
@@ -829,7 +818,6 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     inv_total_due: 'সর্বমোট প্রদেয় টাকা',
     inv_payment_method: 'পেমেন্ট মাধ্যম',
     inv_terms: 'ফেরত ও ওয়ারেন্টি শর্তাবলী',
-
     lbl_country: 'দেশ',
     lbl_currency: 'মুদ্রা (Currency)',
     lbl_timezone: 'টাইমজোন',
@@ -842,7 +830,6 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
   }
 };
 
-// Singleton language state
 const STORAGE_LANG_KEY = 'orderflow_active_language';
 
 export function detectBrowserLocale(): SupportedLanguage {
@@ -858,7 +845,6 @@ let currentLanguage: SupportedLanguage = (() => {
     const saved = localStorage.getItem(STORAGE_LANG_KEY) as SupportedLanguage;
     if (saved && TRANSLATIONS[saved]) return saved;
   } catch (e) {}
-
   return detectBrowserLocale();
 })();
 
@@ -870,14 +856,11 @@ export function setApplicationLanguage(lang: SupportedLanguage) {
   try {
     localStorage.setItem(STORAGE_LANG_KEY, lang);
   } catch (e) {}
-
-  // Update HTML document direction for Arabic RTL support
   const meta = SUPPORTED_LANGUAGES.find(l => l.code === lang);
   if (typeof document !== 'undefined') {
     document.documentElement.lang = lang;
     document.documentElement.dir = meta?.direction || 'ltr';
   }
-
   langListeners.forEach(fn => fn(lang));
 }
 
@@ -885,22 +868,25 @@ export function getApplicationLanguage(): SupportedLanguage {
   return currentLanguage;
 }
 
+function normalizeKey(key: string): string {
+  return key.replace(/\./g, '_');
+}
+
 export function translate(key: string, fallback?: string): string {
+  const k = normalizeKey(key);
   const dict = TRANSLATIONS[currentLanguage] || TRANSLATIONS['en'];
-  return dict[key] || TRANSLATIONS['en'][key] || fallback || key;
+  return dict[k] || TRANSLATIONS['en'][k] || fallback || key;
 }
 
 export function useI18n() {
   const [lang, setLang] = useState<SupportedLanguage>(currentLanguage);
 
   useEffect(() => {
-    // Initial sync
     const meta = SUPPORTED_LANGUAGES.find(l => l.code === currentLanguage);
     if (document) {
       document.documentElement.lang = currentLanguage;
       document.documentElement.dir = meta?.direction || 'ltr';
     }
-
     const listener = (newLang: SupportedLanguage) => setLang(newLang);
     langListeners.add(listener);
     return () => {
@@ -909,8 +895,9 @@ export function useI18n() {
   }, []);
 
   const t = (key: string, fallback?: string) => {
+    const k = normalizeKey(key);
     const dict = TRANSLATIONS[lang] || TRANSLATIONS['en'];
-    return dict[key] || TRANSLATIONS['en'][key] || fallback || key;
+    return dict[k] || TRANSLATIONS['en'][k] || fallback || key;
   };
 
   const currentMeta = SUPPORTED_LANGUAGES.find(l => l.code === lang) || SUPPORTED_LANGUAGES[0];

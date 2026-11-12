@@ -19,9 +19,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   if (!isOpen) return null;
 
   const [mode, setMode] = useState<'login' | 'register' | 'forgot'>('login');
-  const [email, setEmail] = useState('tanvirislam2607@gmail.com');
-  const [password, setPassword] = useState('password123');
-  const [fullName, setFullName] = useState('Tanvir Islam');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -78,13 +78,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             onClose();
             return;
           }
+        } else if (mode === 'forgot') {
+          const { error } = await supabase.auth.resetPasswordForEmail(email);
+          if (error) throw error;
+          setErrorMessage('If that email exists, a reset link was sent.');
+          setLoading(false);
+          return;
         }
       } else {
-        // Local interactive authentication
+        // Local interactive authentication (demo only — not secure)
         onAuthenticate({
           id: `usr_local_${Date.now()}`,
-          email,
-          full_name: mode === 'register' ? fullName : (email.includes('admin') ? 'Store Admin' : 'Tanvir Islam (Merchant)'),
+          email: email || 'demo@local.dev',
+          full_name: mode === 'register' ? (fullName || 'Merchant') : (email.split('@')[0] || 'Demo Merchant'),
           role: 'owner',
           preferred_language: 'en',
           created_at: new Date().toISOString()
@@ -101,14 +107,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
       <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden my-6">
-        {/* Header */}
         <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950">
           <div>
             <span className="font-bold text-sm text-slate-900 dark:text-white">
               {mode === 'login' ? `Sign In to ${whiteLabel.app_name}` : mode === 'register' ? 'Register New Merchant Account' : 'Reset Password'}
             </span>
             <p className="text-[11px] text-slate-500">
-              Supabase Auth & Session Verification
+              {isSupabaseConfigured ? 'Supabase Auth' : 'Local demo mode — no server session'}
             </p>
           </div>
           <button onClick={onClose} className="cursor-pointer text-slate-400 hover:text-slate-600">
@@ -116,13 +121,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </button>
         </div>
 
-        {/* Content */}
         <div className="p-6 space-y-4 text-xs">
-          {/* Quick Sandbox Login Buttons */}
           <div className="p-3 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/60 rounded-xl space-y-2">
             <div className="font-semibold text-indigo-950 dark:text-indigo-200 text-[11px] flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-              <span>Instant Quick-Login (Evaluation & Review Mode)</span>
+              <span>Demo quick-login (local only — not secure)</span>
             </div>
             <div className="grid grid-cols-3 gap-1.5">
               <button
@@ -149,6 +152,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
           </div>
 
+          {!isSupabaseConfigured && (
+            <div className="p-2.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 rounded-lg text-amber-800 dark:text-amber-200 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>
+                Supabase is not configured on this deployment. Sign-in only creates a temporary browser session.
+                Data stays in localStorage and is not protected. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY for real auth.
+              </span>
+            </div>
+          )}
+
           {errorMessage && (
             <div className="p-2.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/80 rounded-lg text-rose-700 dark:text-rose-300 flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
@@ -169,7 +182,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     required
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder="e.g. Tanvir Islam"
+                    placeholder="e.g. Your Name"
                     className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white"
                   />
                 </div>
@@ -184,7 +197,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <Mail className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
                 <input
                   type="email"
-                  required
+                  required={isSupabaseConfigured}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@company.com"
@@ -213,7 +226,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <Lock className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
                   <input
                     type="password"
-                    required
+                    required={isSupabaseConfigured}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
@@ -232,11 +245,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </button>
           </form>
 
-          {/* Toggle login/register */}
           <div className="pt-3 border-t border-slate-100 dark:border-slate-800 text-center text-slate-500">
             {mode === 'login' ? (
               <span>
-                Don&apos;t have an account?{' '}
+                Don't have an account?{' '}
                 <button
                   type="button"
                   onClick={() => setMode('register')}
