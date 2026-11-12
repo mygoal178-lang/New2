@@ -42,18 +42,16 @@ export default function App() {
     actions
   } = useOrderFlowStore();
 
-  // Navigation and views
-  const [viewMode, setViewMode] = useState<'landing' | 'app'>('app');
+  // Start on landing so users see marketing + auth instead of a pre-loaded demo owner session
+  const [viewMode, setViewMode] = useState<'landing' | 'app'>('landing');
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
-  // Modals
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
   const [selectedInvoiceOrder, setSelectedInvoiceOrder] = useState<Order | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
-  // Dark Mode
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     return document.documentElement.classList.contains('dark') || false;
   });
@@ -76,7 +74,6 @@ export default function App() {
     }
   }, [isDarkMode]);
 
-  // If viewing public landing page
   if (viewMode === 'landing') {
     return (
       <>
@@ -90,6 +87,7 @@ export default function App() {
           onClose={() => setIsAuthModalOpen(false)}
           whiteLabel={whiteLabel}
           onAuthenticate={(user) => {
+            actions.setCurrentUser(user);
             setViewMode('app');
           }}
         />
@@ -117,7 +115,6 @@ export default function App() {
       onMarkNotificationRead={(id) => actions.markNotificationAsRead(id)}
       onMarkAllNotificationsRead={() => actions.markAllNotificationsAsRead()}
     >
-      {/* Active Tab View */}
       {currentTab === 'dashboard' && (
         <DashboardView
           orders={orders}
@@ -252,7 +249,6 @@ export default function App() {
 
       {currentTab === 'handover' && <HandoverView />}
 
-      {/* Global Modals */}
       <NewOrderModal
         isOpen={isNewOrderModalOpen}
         onClose={() => setIsNewOrderModalOpen(false)}
@@ -276,7 +272,7 @@ export default function App() {
         onClose={() => setIsAuthModalOpen(false)}
         whiteLabel={whiteLabel}
         onAuthenticate={(user) => {
-          // Handled
+          actions.setCurrentUser(user);
         }}
       />
 
