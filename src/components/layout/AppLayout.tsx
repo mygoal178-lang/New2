@@ -106,9 +106,9 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   const canCreateWorkspace = can(currentUser.role, 'workspace:create');
 
   return (
-    <div className={`min-h-screen min-h-[100dvh] bg-slate-100/70 dark:bg-slate-950 flex font-sans text-slate-900 dark:text-slate-100 antialiased overflow-x-hidden ${isRtl ? 'rtl' : 'ltr'}`}>
-      <aside className={`hidden lg:flex w-64 flex-col justify-between bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shrink-0 ${isRtl ? 'border-l' : 'border-r'}`}>
-        <div>
+    <div className={`h-[100dvh] max-h-[100dvh] bg-slate-100/70 dark:bg-slate-950 flex font-sans text-slate-900 dark:text-slate-100 antialiased overflow-hidden ${isRtl ? 'rtl' : 'ltr'}`}>
+      <aside className={`hidden lg:flex w-64 flex-col justify-between bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shrink-0 min-h-0 ${isRtl ? 'border-l' : 'border-r'}`}>
+        <div className="flex-1 min-h-0 overflow-y-auto mobile-scroll">
           <div className="h-16 px-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
             <button onClick={onReturnToLanding} className="text-left group cursor-pointer">
               <div className="font-bold text-base tracking-tight text-slate-950 dark:text-white flex items-center gap-1.5">
@@ -180,7 +180,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           </nav>
         </div>
 
-        <div className="p-3 border-t border-slate-200 dark:border-slate-800 text-xs space-y-2">
+        <div className="p-3 border-t border-slate-200 dark:border-slate-800 text-xs space-y-2 shrink-0">
           <div className="relative">
             <button onClick={() => setRoleSwitcherOpen(!roleSwitcherOpen)} className="w-full p-2 rounded-lg bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-between text-left cursor-pointer transition-colors">
               <div className="flex items-center gap-2 min-w-0">
@@ -209,7 +209,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
         <header className="h-14 sm:h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-3 sm:px-6 flex items-center justify-between gap-2 sm:gap-4 shrink-0 safe-top">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button onClick={() => setMobileMenuOpen(true)} className="lg:hidden p-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer" aria-label="Open menu">
@@ -258,7 +258,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto mobile-scroll p-3 sm:p-6 safe-bottom">{children}</main>
+        <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden mobile-scroll p-3 sm:p-6 safe-bottom">{children}</main>
       </div>
 
       {mobileMenuOpen && (
@@ -269,7 +269,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
               <span className="font-bold">{whiteLabel.app_name}</span>
               <button onClick={() => setMobileMenuOpen(false)} className="p-2 cursor-pointer" aria-label="Close menu"><X className="w-5 h-5" /></button>
             </div>
-            <nav className="flex-1 space-y-1 overflow-y-auto mobile-scroll">
+            <nav className="flex-1 space-y-1 overflow-y-auto mobile-scroll min-h-0">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = currentTab === item.id;
