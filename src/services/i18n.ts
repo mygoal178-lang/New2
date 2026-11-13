@@ -233,7 +233,7 @@ const NAV_KEYS: Record<SupportedLanguage, Record<string, string>> = {
 
 export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = NAV_KEYS;
 
-function detectBrowserLocale(): SupportedLanguage {
+export function detectBrowserLocale(): SupportedLanguage {
   if (typeof navigator !== 'undefined' && navigator.language) {
     const browserCode = navigator.language.split('-')[0].toLowerCase() as SupportedLanguage;
     if (TRANSLATIONS[browserCode]) return browserCode;
