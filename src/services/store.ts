@@ -1,5 +1,5 @@
 /**
- * OrderFlow store — integrations + working order create/update/delete.
+ * OrderFlow store — integrations, products seed, working orders.
  */
 import { useState, useEffect } from 'react';
 import type { UserProfile, BusinessWorkspace, WhiteLabelConfig, AppNotification, ECommerceIntegration } from '../types';
@@ -76,6 +76,45 @@ const DEFAULT_INTEGRATIONS: ECommerceIntegration[] = [
   { id: 'integ_etsy', business_id: 'biz_demo', channel: 'etsy', name: 'Etsy Shop', is_connected: false, orders_synced_count: 0, auto_sync: false }
 ];
 
+const DEFAULT_PRODUCTS = [
+  {
+    id: 'prod_demo_1',
+    business_id: 'biz_demo',
+    title: 'Classic Cotton T-Shirt',
+    name: 'Classic Cotton T-Shirt',
+    sku: 'TSHIRT-001',
+    selling_price: 24.99,
+    cost_price: 8.5,
+    stock: 120,
+    category: 'Apparel',
+    variants: [{ name: 'M / Black' }, { name: 'L / Black' }, { name: 'M / White' }]
+  },
+  {
+    id: 'prod_demo_2',
+    business_id: 'biz_demo',
+    title: 'Wireless Earbuds Pro',
+    name: 'Wireless Earbuds Pro',
+    sku: 'EARBUD-PRO',
+    selling_price: 59.0,
+    cost_price: 22.0,
+    stock: 45,
+    category: 'Electronics',
+    variants: []
+  },
+  {
+    id: 'prod_demo_3',
+    business_id: 'biz_demo',
+    title: 'Ceramic Coffee Mug',
+    name: 'Ceramic Coffee Mug',
+    sku: 'MUG-01',
+    selling_price: 14.5,
+    cost_price: 3.2,
+    stock: 200,
+    category: 'Home',
+    variants: [{ name: 'White' }, { name: 'Black' }]
+  }
+];
+
 interface AppState {
   currentUser: UserProfile;
   activeBusinessId: string;
@@ -98,7 +137,7 @@ const DEFAULT_STATE: AppState = {
   activeBusinessId: 'biz_demo',
   workspaces: [defaultWorkspace],
   members: [],
-  products: [],
+  products: [...DEFAULT_PRODUCTS],
   customers: [],
   orders: [],
   couriers: [],
@@ -109,6 +148,15 @@ const DEFAULT_STATE: AppState = {
   integrations: DEFAULT_INTEGRATIONS,
   whiteLabel: defaultWhiteLabel
 };
+
+function ensureProducts(state: AppState): AppState {
+  const bid = state.activeBusinessId || 'biz_demo';
+  let products = state.products || [];
+  if (!products.length) {
+    products = DEFAULT_PRODUCTS.map((p) => ({ ...p, business_id: bid }));
+  }
+  return { ...state, products };
+}
 
 function ensureIntegrations(state: AppState): AppState {
   const bid = state.activeBusinessId || 'biz_demo';
@@ -139,17 +187,17 @@ function loadInitialState(): AppState {
         whiteLabel: { ...DEFAULT_STATE.whiteLabel, ...(parsed.whiteLabel || {}) },
         integrations: parsed.integrations?.length ? parsed.integrations : DEFAULT_STATE.integrations
       };
-      return ensureIntegrations(merged);
+      return ensureProducts(ensureIntegrations(merged));
     }
   } catch {}
-  return ensureIntegrations(DEFAULT_STATE);
+  return ensureProducts(ensureIntegrations(DEFAULT_STATE));
 }
 
 let currentState: AppState = loadInitialState();
 const listeners = new Set<() => void>();
 
 function saveState(state: AppState) {
-  currentState = ensureIntegrations(state);
+  currentState = ensureProducts(ensureIntegrations(state));
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(currentState));
   } catch {}
@@ -249,19 +297,35 @@ export const OrderFlowStore = {
       let subtotal = 0;
       const items = itemsIn.map((it: any, idx: number) => {
         const qty = Number(it.quantity) || 1;
-        const unit = Number(it.unitPrice ?? it.unit_price ?? it.price) || 0;
+        const catalog = currentState.products.find(
+          (p: any) => p.id === (it.productId || it.product_id)
+        );
+        const unit =
+          Number(it.unitPrice ?? it.unit_price ?? it.price) ||
+          Number(catalog?.selling_price) ||
+          0;
+        const unitCost =
+          Number(it.unitCost ?? it.unit_cost) ||
+          Number(catalog?.cost_price ?? catalog?.purchase_price) ||
+          0;
         const line = qty * unit;
         subtotal += line;
         return {
           id: `oi_${Date.now()}_${idx}`,
           order_id: id,
-          product_id: it.productId || it.product_id || '',
-          product_title: it.productTitle || it.product_title || it.title || 'Item',
+          product_id: it.productId || it.product_id || catalog?.id || '',
+          product_title:
+            it.productTitle ||
+            it.product_title ||
+            it.title ||
+            catalog?.title ||
+            catalog?.name ||
+            'Item',
           variant_name: it.variantName || it.variant_name,
-          sku: it.sku || '',
+          sku: it.sku || catalog?.sku || '',
           quantity: qty,
           unit_price: unit,
-          unit_cost: Number(it.unitCost ?? it.unit_cost) || 0,
+          unit_cost: unitCost,
           total_price: line
         };
       });
@@ -438,7 +502,11 @@ export const OrderFlowStore = {
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch {}
-    saveState({ ...DEFAULT_STATE, integrations: [...DEFAULT_INTEGRATIONS] });
+    saveState({
+      ...DEFAULT_STATE,
+      products: [...DEFAULT_PRODUCTS],
+      integrations: [...DEFAULT_INTEGRATIONS]
+    });
   }
 };
 
@@ -446,8 +514,8 @@ export function useOrderFlowStore() {
   const [state, setState] = useState(currentState);
 
   useEffect(() => {
-    if (!currentState.integrations?.length) {
-      saveState(ensureIntegrations(currentState));
+    if (!currentState.integrations?.length || !currentState.products?.length) {
+      saveState(ensureProducts(ensureIntegrations(currentState)));
     }
     return OrderFlowStore.subscribe(() => setState(OrderFlowStore.getState()));
   }, []);
@@ -469,7 +537,10 @@ export function useOrderFlowStore() {
     activeWorkspace,
     workspaces: state.workspaces,
     members: state.members.filter((m: any) => m.business_id === bid),
-    products: state.products.filter((p: any) => p.business_id === bid),
+    products: (() => {
+      const filtered = state.products.filter((p: any) => p.business_id === bid);
+      return filtered.length ? filtered : state.products;
+    })(),
     orders: state.orders.filter((o: any) => o.business_id === bid),
     customers: state.customers.filter((c: any) => c.business_id === bid),
     couriers: state.couriers.filter((c: any) => c.business_id === bid),
